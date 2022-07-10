@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  tinypost:
+    build: .
+    volumes:
+      - ./:/usr/app
+    command: "npm run start:dev"
+    ports:
+      - 8000:3000
+    networks:
+      - tinypost_network
+networks:
+  tinypost_network:
