@@ -23,4 +23,8 @@ namespace UserActions {
   type CreateUser = (
     user: UsersModule.CreateUserDTO
   ) => Promise<UsersModule.UserDTO>;
+
+  type FindUserByUsername = (
+    username: string
+  ) => Promise<UsersModule.UserDTO | null>;
 }

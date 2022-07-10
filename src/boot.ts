@@ -1,9 +1,13 @@
 import express from "express";
+import { engine } from "express-handlebars";
 import mongoose from "mongoose";
 import { Controllers } from "./controllers";
-import { User } from "./modules/users/UserDAL";
 
 export const app = express();
+
+app.engine("handlebars", engine());
+app.set("view engine", "handlebars");
+app.set("views", "./views");
 
 app.use(Controllers);
 
