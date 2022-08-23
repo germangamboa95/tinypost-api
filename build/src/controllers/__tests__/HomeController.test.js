@@ -15,11 +15,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.render = void 0;
 const supertest_1 = __importDefault(require("supertest"));
 const web_1 = require("../../web");
 const HomeController_1 = require("../HomeController");
 const dom_1 = require("@testing-library/dom");
-const renderUtility_1 = require("./renderUtility");
+const render = (html) => {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div;
+};
+exports.render = render;
 web_1.app.use(HomeController_1.HomeController);
 describe("HomeController Suite", () => {
     it("has a root route", () => __awaiter(void 0, void 0, void 0, function* () {
@@ -28,7 +34,7 @@ describe("HomeController Suite", () => {
     }));
     it("returns home page", () => __awaiter(void 0, void 0, void 0, function* () {
         const { text } = yield (0, supertest_1.default)(web_1.app).get("/");
-        const container = (0, renderUtility_1.render)(text);
+        const container = (0, exports.render)(text);
         const title = (0, dom_1.getByText)(container, "Tinypost");
         expect(title.textContent).toBe("Tinypost");
     }));

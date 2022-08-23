@@ -6,7 +6,13 @@ import request from "supertest";
 import { app } from "../../web";
 import { HomeController } from "../HomeController";
 import { getByText } from "@testing-library/dom";
-import { render } from "./renderUtility";
+
+export const render = (html: string) => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div;
+};
+
 app.use(HomeController);
 
 describe("HomeController Suite", () => {

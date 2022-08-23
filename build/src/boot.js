@@ -8,19 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.main = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
 const controllers_1 = require("./controllers");
 const web_1 = require("./web");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     web_1.app.use(controllers_1.Controllers);
-    yield mongoose_1.default.connect("mongodb://root:example@mongo:27017", {
-        dbName: "tinypost",
-    });
     web_1.app.listen(3000);
 });
 exports.main = main;

@@ -3,6 +3,7 @@ version: "3"
 services:
   tinypost:
     build: .
+    platform: linux
     volumes:
       - ./:/usr/app
     command: "npm run start:dev"
@@ -19,16 +20,14 @@ services:
       - 8000:3000
     networks:
       - tinypost_network
-  mongo:
-    image: mongo
+  neo4j:
+    image: neo4j
     restart: always
     ports:
-      - 27017:27017
+      - 7474:7474
+      - 7687:7687
     volumes:
-      - ./data:/data/db
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      - ./data:/data
     networks:
       - tinypost_network
 networks:
