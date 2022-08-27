@@ -3,6 +3,13 @@ import type { Knex } from "knex";
 // Update with your config settings.
 
 export const config: { [key: string]: Knex.Config } = {
+  test: {
+    client: "sqlite3",
+    debug: true,
+    connection: {
+      filename: ":memory:",
+    },
+  },
   development: {
     client: "sqlite3",
     connection: {

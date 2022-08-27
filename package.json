@@ -7,7 +7,8 @@
     "test": "jest",
     "start:dev": "nodemon",
     "build": "rimraf ./build && tsc",
-    "start": "npm run build && node build/index.js"
+    "start": "npm run build && node build/index.js",
+    "migrate:latest": "npx knex migrate:latest"
   },
   "keywords": [],
   "author": "",
