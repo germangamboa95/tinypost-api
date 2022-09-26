@@ -10,7 +10,11 @@ export class TagPostService {
   }
 
   public async assignTag(post: Post, tag: Tag) {
-    post?.tags ? post.tags.push(tag) : (post.tags = [tag]);
+    return await this.assignTags(post, [tag]);
+  }
+
+  public async assignTags(post: Post, tags: Tag[]) {
+    post?.tags ? post.tags.push(...tags) : (post.tags = [...tags]);
     return this.post_repo.save(post);
   }
 }
