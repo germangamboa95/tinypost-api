@@ -20,15 +20,5 @@ services:
       - 8000:3000
     networks:
       - tinypost_network
-  neo4j:
-    image: neo4j
-    restart: always
-    ports:
-      - 7474:7474
-      - 7687:7687
-    volumes:
-      - ./data:/data
-    networks:
-      - tinypost_network
 networks:
   tinypost_network:
