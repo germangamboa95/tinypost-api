@@ -10,27 +10,18 @@ import {
   ManyToMany,
   JoinTable,
 } from "typeorm";
-import { Tag } from "./Tag";
-import { User } from "./User";
+import { Post } from "./Post";
 
 @Entity()
-export class Post {
+export class Tag {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  title: string;
+  name: string;
 
-  @Column()
-  @Index()
-  url: string;
-
-  @ManyToOne(() => User, (user) => user.posts)
-  user: User;
-
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags: Tag[];
+  @ManyToMany(() => Post)
+  posts: Post[];
 
   @Index()
   @CreateDateColumn()
