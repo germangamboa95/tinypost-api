@@ -15,6 +15,7 @@ export class TagPostService {
 
   public async assignTags(post: Post, tags: Tag[]) {
     post?.tags ? post.tags.push(...tags) : (post.tags = [...tags]);
+
     return this.post_repo.save(post);
   }
 }

@@ -1,6 +1,6 @@
 import { User } from "../entity/User";
 import bcyrpt from "bcryptjs";
-
+import jwt from "jsonwebtoken";
 export class BasicAuthenticationService {
   private user: User;
 
@@ -9,13 +9,18 @@ export class BasicAuthenticationService {
   }
 
   public async check(password: string) {
-    if (await this.isValidPassword(password, this.user.password)) {
-      return true;
-    }
-    return false;
+    return this.isValidPassword(password, this.user.password);
+  }
+
+  public async makeToken() {
+    return jwt.sign(
+      { sub: this.user.id, email: this.user.email },
+      "testicles",
+      { expiresIn: "12h" }
+    );
   }
 
   private async isValidPassword(password: string, hashed_password: string) {
-    return bcyrpt.compare(password, hashed_password);
+    return await bcyrpt.compare(password, hashed_password);
   }
 }

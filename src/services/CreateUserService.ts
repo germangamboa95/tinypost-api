@@ -2,6 +2,7 @@ import { DataSource, Repository } from "typeorm";
 import { User } from "../entity/User";
 import bcyrpt from "bcryptjs";
 import { FindUserService } from "./FindUserService";
+import { UserAlreadyExists } from "../errors/UserAlreadyExists";
 
 export class CreateUserService {
   private user_repo: Repository<User>;
@@ -16,7 +17,7 @@ export class CreateUserService {
     const existing_user = await this.find_user_service.findByEmail(email);
 
     if (existing_user) {
-      throw new Error("User Already Exists");
+      throw new UserAlreadyExists();
     }
 
     const password_hash = await bcyrpt.hash(password, 10);

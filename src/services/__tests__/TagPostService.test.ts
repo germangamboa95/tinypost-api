@@ -1,10 +1,8 @@
-import exp from "constants";
 import { data_source_test } from "../../db";
-import { Tag } from "../../entity/Tag";
 import { CreatePostService } from "../CreatePostService";
 import { CreateTagService } from "../CreateTagService";
 import { CreateUserService } from "../CreateUserService";
-import { TagPostService } from "../TagPostService ";
+import { TagPostService } from "../TagPostService";
 
 describe("TagService tests", () => {
   beforeEach(async () => {

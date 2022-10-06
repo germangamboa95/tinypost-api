@@ -1,6 +1,5 @@
 import { Repository, DataSource } from "typeorm";
 import { Post } from "../entity/Post";
-import { User } from "../entity/User";
 
 export class PostQueryService {
   private post_repo: Repository<Post>;
@@ -13,7 +12,7 @@ export class PostQueryService {
     return this.post_repo
       .createQueryBuilder("posts")
       .orderBy("posts.created_at", "DESC")
-      .skip(page_size * page_number)
+      .skip(page_size * page_number - page_size)
       .take(page_size)
       .getMany();
   }
