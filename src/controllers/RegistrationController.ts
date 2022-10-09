@@ -1,6 +1,5 @@
 import { Request, Response, Router } from "express";
 import { body } from "express-validator";
-import { data_source } from "../db";
 import { UserAlreadyExists } from "../errors/UserAlreadyExists";
 import { CreateUserService } from "../services/CreateUserService";
 import { getValidatedData, validate } from "./middleware/Validation";
@@ -11,8 +10,12 @@ import { BasicAuthenticationService } from "../services/BasicAuthenticationServi
 
 export const RegistrationController = Router();
 
-const create_user_service = new CreateUserService(data_source);
-
+interface RegisterUserBody {
+  email: string;
+  password: string;
+  confirm_password: string;
+}
+// TODO: Turn into resource
 const RegistrationReponse = (user: User, token: string) => {
   const formatted_user = {
     id: user.id,
@@ -31,7 +34,7 @@ RegistrationController.post(
   "/register",
   validate([
     body("email").isEmail().trim(),
-    body("password").isString().trim(),
+    body("password").isString().isLength({ min: 8 }).trim(),
     body("confirm_password").custom(async (value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Password confirmation does not match password");
@@ -40,9 +43,12 @@ RegistrationController.post(
     }),
   ]),
   async (req: Request, res: Response) => {
-    const { email, password } = getValidatedData(req);
+    const { email, password } = getValidatedData<RegisterUserBody>(req);
 
     try {
+      const create_user_service = new CreateUserService(
+        res.app.get("data_source")
+      );
       const user = await create_user_service.register(email, password);
       const auth_service = new BasicAuthenticationService(user);
       const token = await auth_service.makeToken();

@@ -34,7 +34,8 @@ describe("TagService tests", () => {
 
     const post = await create_post_service.createPost(
       "Some webpage",
-      "germangamboa.com"
+      "germangamboa.com",
+      []
     );
 
     const tag_post_service = new TagPostService(data_source_test);

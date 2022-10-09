@@ -22,7 +22,8 @@ describe("CreatePostService tests", () => {
 
     const post = await create_post_service.createPost(
       "Some webpage",
-      "germangamboa.com"
+      "germangamboa.com",
+      []
     );
 
     expect(post.title).toBe("Some webpage");

@@ -9,6 +9,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
+  JoinColumn,
 } from "typeorm";
 import { Tag } from "./Tag";
 import { User } from "./User";
@@ -25,7 +26,13 @@ export class Post {
   @Index()
   url: string;
 
+  @Column({ nullable: true })
+  user_id: number;
+
   @ManyToOne(() => User, (user) => user.posts)
+  @JoinColumn({
+    name: "user_id",
+  })
   user: User;
 
   @ManyToMany(() => Tag)

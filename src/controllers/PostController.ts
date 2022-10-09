@@ -1,44 +1,81 @@
-import { Request, Response, Router } from "express";
-import { body, query } from "express-validator";
+import { NextFunction, Request, Response, Router } from "express";
+import { body, param, query } from "express-validator";
 import { getValidatedData, validate } from "./middleware/Validation";
-import { StatusCodes } from "http-status-codes";
 import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { PostQueryService } from "../services/PostQueryService";
-import { data_source } from "../db";
+import { PostResource } from "./resources/PostResource";
 import { CreatePostService } from "../services/CreatePostService";
-import { CreateTagService } from "../services/CreateTagService";
-import { TagPostService } from "../services/TagPostService";
 
 export const PostController = Router();
 
-const post_query_service = new PostQueryService(data_source);
+interface PaginatedQuery {
+  page_size: number;
+  page_number: number;
+}
 
-const create_post_service = new CreatePostService(data_source);
+interface CreatePostBody {
+  url: string;
+  title: string;
+  tags: string[];
+}
 
-const create_tag_service = new CreateTagService(data_source);
-
-const tag_post_service = new TagPostService(data_source);
+const paginated_query_validation = [
+  query("page_size").isInt().optional(),
+  query("page_number").isInt().optional(),
+];
 
 PostController.get(
   "/posts",
-  AuthMiddleware,
-  validate([
-    query("page_size").isInt().optional(),
-    query("page_number").isInt().optional(),
-  ]),
-  async (req: Request, res: Response) => {
-    const { page_size = 10, page_number = 1 } = getValidatedData(req, {
-      includeOptionals: true,
-    }) as { page_size: number; page_number: number };
+  validate(paginated_query_validation),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { page_size = 10, page_number = 1 } =
+      getValidatedData<PaginatedQuery>(req, {
+        includeOptionals: true,
+      });
 
     try {
-      const posts = await post_query_service.fetchLatest(
-        page_size,
-        page_number
+      const post_query_service = new PostQueryService(
+        res.app.get("data_source")
+      );
+
+      return res.json({
+        posts: PostResource.toCollection(
+          await post_query_service.fetchLatest(page_size, page_number)
+        ),
+      });
+    } catch (error: any) {
+      return next(error);
+    }
+  }
+);
+
+PostController.get(
+  "/user/:user_id/posts",
+  validate([...paginated_query_validation, param("user_id").isInt()]),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const {
+      page_size = 10,
+      page_number = 1,
+      user_id,
+    } = getValidatedData<PaginatedQuery & { user_id: number }>(req, {
+      includeOptionals: true,
+    });
+
+    try {
+      const post_query_service = new PostQueryService(
+        res.app.get("data_source")
+      );
+
+      const posts = PostResource.toCollection(
+        await post_query_service.fetchLatestByUser(
+          page_size,
+          page_number,
+          user_id
+        )
       );
       return res.json({ posts });
     } catch (error) {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+      return next(error);
     }
   }
 );
@@ -52,22 +89,21 @@ PostController.post(
     body("tags").isArray(),
     body("tags.*").isString(),
   ]),
-  async (req: Request, res: Response) => {
-    const { url, title, tags } = getValidatedData(req);
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { url, title, tags } = getValidatedData<CreatePostBody>(req);
     const user = res.locals.user;
     try {
+      const create_post_service = new CreatePostService(
+        res.app.get("data_source")
+      );
+
       create_post_service.setUser(user);
 
-      const [post, tag_p] = await Promise.all([
-        create_post_service.createPost(title, url),
-        tags.map((tag: string) => create_tag_service.upsertTag(tag)),
-      ]);
+      const post = await create_post_service.createPost(title, url, tags);
 
-      await tag_post_service.assignTags(post, tag_p);
-
-      return res.json({ post, user });
+      return res.json({ post: PostResource.toResource(post) });
     } catch (error) {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+      return next(error);
     }
   }
 );

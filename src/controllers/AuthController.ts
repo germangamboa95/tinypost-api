@@ -1,31 +1,19 @@
 import { Request, Response, Router } from "express";
 import { body } from "express-validator";
-import { data_source } from "../db";
 import { getValidatedData, validate } from "./middleware/Validation";
 import { StatusCodes } from "http-status-codes";
-import { User } from "../entity/User";
 import { BasicAuthenticationService } from "../services/BasicAuthenticationService";
 import { FindUserService } from "../services/FindUserService";
 import { UserDoesNotExist } from "../errors/UserDoesNotExist";
 import { InvalidPassword } from "../errors/InvalidPassword";
+import { AuthResource } from "./resources/AuthResource";
 
 export const AuthController = Router();
 
-const find_user_service = new FindUserService(data_source);
-
-const LoginResponse = (user: User, token: string) => {
-  const formatted_user = {
-    id: user.id,
-    email: user.email,
-    created_at: user.created_at,
-    updated_at: user.update_at,
-  };
-
-  return {
-    user: formatted_user,
-    jwt: token,
-  };
-};
+interface LoginBody {
+  email: string;
+  password: string;
+}
 
 AuthController.post(
   "/login",
@@ -34,9 +22,10 @@ AuthController.post(
     body("password").isString().trim(),
   ]),
   async (req: Request, res: Response) => {
-    const { email, password } = getValidatedData(req);
+    const { email, password } = getValidatedData<LoginBody>(req);
 
     try {
+      const find_user_service = new FindUserService(res.app.get("data_source"));
       const user = await find_user_service.findByEmail(email);
 
       if (user === null) {
@@ -53,7 +42,7 @@ AuthController.post(
 
       const token = await auth_service.makeToken();
 
-      return res.json(LoginResponse(user, token));
+      return res.json(AuthResource.toResource(user, token));
     } catch (error) {
       if (
         error instanceof UserDoesNotExist ||

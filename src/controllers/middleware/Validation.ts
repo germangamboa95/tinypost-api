@@ -23,9 +23,9 @@ export const validate = (validations: ValidationChain[]) => {
   };
 };
 
-export const getValidatedData = (
+export const getValidatedData = <T>(
   req: Request,
   options?: Partial<MatchedDataOptions>
-): Record<string, any> => {
-  return matchedData(req, options);
+): T => {
+  return matchedData(req, options) as T;
 };
