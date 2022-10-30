@@ -18,5 +18,11 @@ export const main = async () => {
       .json({ error: err?.message });
   });
 
+  app.get("*", (req: Request, res: Response) => {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      message: "Resource not found",
+    });
+  });
+
   app.listen(3000);
 };

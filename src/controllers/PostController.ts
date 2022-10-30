@@ -116,7 +116,7 @@ PostController.post(
 );
 
 PostController.post(
-  "/posts/:post_id/comment",
+  "/posts/:post_id/comments",
   AuthMiddleware,
   validate([param("post_id").isInt(), body("content").isString().trim()]),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -137,8 +137,7 @@ PostController.post(
 );
 
 PostController.get(
-  "/posts/:post_id/comment",
-  AuthMiddleware,
+  "/posts/:post_id/comments",
   validate([param("post_id").isInt(), body("content").isString().trim()]),
   async (req: Request, res: Response, next: NextFunction) => {
     const { post_id, content } = getValidatedData<CreateCommentBody>(req);
