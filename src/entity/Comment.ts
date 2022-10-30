@@ -1,38 +1,35 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column,
-  Index,
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
-  ManyToMany,
-  JoinTable,
+  Column,
   JoinColumn,
-  OneToMany,
+  ManyToOne,
 } from "typeorm";
-import { Tag } from "./Tag";
+import { Post } from "./Post";
 import { User } from "./User";
-import { Comment } from "./Comment";
 
 @Entity()
-export class Post {
+export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  title: string;
-
-  @Column()
-  @Index()
-  url: string;
+  content: string;
 
   @Column({ nullable: true })
   user_id: number;
 
-  @OneToMany(() => Comment, (comment) => comment.post)
-  comments: Comment[];
+  @Column({ nullable: true })
+  post_id: number;
+
+  @ManyToOne(() => Post, (post) => post.comments)
+  @JoinColumn({
+    name: "post_id",
+  })
+  post: Post;
 
   @ManyToOne(() => User, (user) => user.posts)
   @JoinColumn({
@@ -40,15 +37,9 @@ export class Post {
   })
   user: User;
 
-  @ManyToMany(() => Tag)
-  @JoinTable()
-  tags: Tag[];
-
-  @Index()
   @CreateDateColumn()
   created_at: Date;
 
-  @Index()
   @UpdateDateColumn()
   update_at: Date;
 

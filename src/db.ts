@@ -4,17 +4,18 @@ import { DataSource } from "typeorm";
 import { User } from "./entity/User";
 import { Post } from "./entity/Post";
 import { Tag } from "./entity/Tag";
+import { Comment } from "./entity/Comment";
 
 export const data_source = new DataSource({
   type: "sqlite",
   database: path.join(__dirname, "/../dev.sqlite3"),
-  entities: [User, Post, Tag],
+  entities: [User, Post, Tag, Comment],
   synchronize: true,
 });
 
 export const data_source_test = new DataSource({
   type: "sqlite",
   database: ":memory:",
-  entities: [User, Post, Tag],
+  entities: [User, Post, Tag, Comment],
   synchronize: true,
 });

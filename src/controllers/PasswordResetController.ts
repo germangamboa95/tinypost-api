@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
 import { body } from "express-validator";
 import { getValidatedData, validate } from "./middleware/Validation";
-
 import { StatusCodes } from "http-status-codes";
 import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { UserResetPasswordAction } from "../services/UserResetPasswordAction";

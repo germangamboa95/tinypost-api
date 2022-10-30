@@ -5,6 +5,8 @@ import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { PostQueryService } from "../services/PostQueryService";
 import { PostResource } from "./resources/PostResource";
 import { CreatePostService } from "../services/CreatePostService";
+import { CommentService } from "../services/CommentService";
+import { CommentResource } from "./resources/CommentResource";
 
 export const PostController = Router();
 
@@ -17,6 +19,11 @@ interface CreatePostBody {
   url: string;
   title: string;
   tags: string[];
+}
+
+interface CreateCommentBody {
+  content: string;
+  post_id: number;
 }
 
 const paginated_query_validation = [
@@ -102,6 +109,48 @@ PostController.post(
       const post = await create_post_service.createPost(title, url, tags);
 
       return res.json({ post: PostResource.toResource(post) });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+PostController.post(
+  "/posts/:post_id/comment",
+  AuthMiddleware,
+  validate([param("post_id").isInt(), body("content").isString().trim()]),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { post_id, content } = getValidatedData<CreateCommentBody>(req);
+    const user = res.locals.user;
+    try {
+      const comment_service = new CommentService(res.app.get("data_source"));
+
+      comment_service.setUser(user);
+
+      const comment = await comment_service.addComment(content, post_id);
+
+      return res.json({ post: CommentResource.toResource(comment) });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+PostController.get(
+  "/posts/:post_id/comment",
+  AuthMiddleware,
+  validate([param("post_id").isInt(), body("content").isString().trim()]),
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { post_id, content } = getValidatedData<CreateCommentBody>(req);
+    const user = res.locals.user;
+    try {
+      const comment_service = new CommentService(res.app.get("data_source"));
+
+      comment_service.setUser(user);
+
+      const comments = await comment_service.getComments(post_id);
+
+      return res.json({ post: CommentResource.toCollection(comments) });
     } catch (error) {
       return next(error);
     }
