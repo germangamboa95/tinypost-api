@@ -11,13 +11,16 @@ services:
       - 8000:3000
     networks:
       - tinypost_network
-  tinypost_tests:
-    build: .
-    volumes:
-      - ./:/usr/app
-    command: "npm run test"
+  mongo:
+    image: mongo
+    restart: always
     ports:
-      - 8000:3000
+      - 27017:27017
+    volumes:
+      - ./data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
     networks:
       - tinypost_network
 networks:
