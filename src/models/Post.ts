@@ -1,11 +1,13 @@
 import { Schema, model, Types } from "mongoose";
 
-interface IPost {
+export interface IPost {
   title: string;
   content_url: string;
   content_type: "link" | "image";
+  content_body: string;
   user?: Types.ObjectId;
   comments?: Types.ObjectId;
+  tags?: Types.ObjectId;
 }
 
 const user_schema = new Schema<IPost>(
@@ -22,6 +24,16 @@ const user_schema = new Schema<IPost>(
       type: Schema.Types.String,
       default: "link",
     },
+    content_body: {
+      type: Schema.Types.String,
+      default: "",
+    },
+    tags: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Tag",
+      },
+    ],
     comments: [
       {
         type: Schema.Types.ObjectId,
