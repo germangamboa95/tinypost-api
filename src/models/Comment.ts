@@ -1,13 +1,6 @@
-import { model, Schema, Types } from "mongoose";
-import { IUser } from "./User";
+import { InferSchemaType, model, Schema } from "mongoose";
 
-export interface IComment {
-  content: string;
-  user?: IUser;
-  comments?: Schema.Types.ObjectId;
-}
-
-const comment_schema = new Schema<IComment>({
+const comment_schema = new Schema({
   content: {
     type: Schema.Types.String,
     required: true,
@@ -26,4 +19,6 @@ const comment_schema = new Schema<IComment>({
   },
 });
 
-export const Comment = model("Comment", comment_schema);
+export type IComment = InferSchemaType<typeof comment_schema>;
+
+export const Comment = model<IComment>("Comment", comment_schema);

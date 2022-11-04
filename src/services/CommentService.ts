@@ -66,7 +66,7 @@ export class CommentService {
 
     const comment = await Comment.findById(id).populate("user");
 
-    if (comment?.user?.username !== user.username) {
+    if (!comment?.user?._id.equals(user._id)) {
       throw new ResourceNotAuth();
     }
 
