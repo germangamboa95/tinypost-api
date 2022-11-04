@@ -67,8 +67,6 @@ export class PostService {
       })
     );
 
-    delete post_dto.tags;
-
     await existing_post.update({
       ...post_dto,
       tags: [...existing_tags, ...created_tags],

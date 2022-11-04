@@ -1,16 +1,6 @@
-import { Schema, model, Types } from "mongoose";
+import { Schema, model, InferSchemaType } from "mongoose";
 
-export interface IPost {
-  title: string;
-  content_url: string;
-  content_type: "link" | "image" | "text";
-  content_body: string;
-  user?: Types.ObjectId;
-  comments?: Types.ObjectId;
-  tags?: [Types.ObjectId];
-}
-
-const user_schema = new Schema<IPost>(
+const user_schema = new Schema(
   {
     title: {
       type: String,
@@ -49,4 +39,6 @@ const user_schema = new Schema<IPost>(
   { timestamps: true }
 );
 
-export const Post = model("Post", user_schema);
+export type IPost = InferSchemaType<typeof user_schema>;
+
+export const Post = model<IPost>("Post", user_schema);

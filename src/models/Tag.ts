@@ -1,10 +1,6 @@
-import { model, Schema } from "mongoose";
+import { InferSchemaType, model, Schema } from "mongoose";
 
-export interface ITag {
-  name: string;
-}
-
-const tag_schema = new Schema<ITag>(
+const tag_schema = new Schema(
   {
     name: {
       type: Schema.Types.String,
@@ -17,4 +13,6 @@ const tag_schema = new Schema<ITag>(
   }
 );
 
-export const Tag = model("Tag", tag_schema);
+export type ITag = InferSchemaType<typeof tag_schema>;
+
+export const Tag = model<ITag>("Tag", tag_schema);
