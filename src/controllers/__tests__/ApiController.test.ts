@@ -208,10 +208,80 @@ describe("ApiController test suite", () => {
           type: "bearer",
         });
 
-      console.log(response_edit.body);
-
       expect(response_edit.status).toBe(StatusCodes.OK);
       expect(response_edit_fail.status).toBe(StatusCodes.FORBIDDEN);
+    });
+  });
+
+  describe("Comment system", () => {
+    it("can add comment to post", async () => {
+      const auth_reponse = await request(app).post("/api/login").send({
+        username: "user_1",
+        password: "12345678",
+      });
+
+      const post_response = await request(app)
+        .post("/api/posts")
+        .send({
+          title: "This is a post",
+          content_type: "text",
+          content_body: "this is the content of the post",
+          tags: ["first_post", "text_post", "cookies"],
+        })
+        .auth(auth_reponse.body.token, {
+          type: "bearer",
+        });
+
+      const comment_response = await request(app)
+        .post(`/api/posts/${post_response.body.post._id}/comments`)
+        .send({
+          content: "this is a comment",
+        })
+        .auth(auth_reponse.body.token, {
+          type: "bearer",
+        });
+
+      expect(comment_response.status).toBe(StatusCodes.OK);
+    });
+
+    it("can add comment to a comment", async () => {
+      const auth_reponse = await request(app).post("/api/login").send({
+        username: "user_1",
+        password: "12345678",
+      });
+
+      const post_response = await request(app)
+        .post("/api/posts")
+        .send({
+          title: "This is a post",
+          content_type: "text",
+          content_body: "this is the content of the post",
+          tags: ["first_post", "text_post", "cookies"],
+        })
+        .auth(auth_reponse.body.token, {
+          type: "bearer",
+        });
+
+      const comment_response = await request(app)
+        .post(`/api/posts/${post_response.body.post._id}/comments`)
+        .send({
+          content: "this is a comment",
+        })
+        .auth(auth_reponse.body.token, {
+          type: "bearer",
+        });
+
+      const comment_response_2 = await request(app)
+        .post(`/api/comments/${comment_response.body.comment._id}`)
+        .send({
+          content: "this is a comment",
+        })
+        .auth(auth_reponse.body.token, {
+          type: "bearer",
+        });
+
+      expect(comment_response.status).toBe(StatusCodes.OK);
+      expect(comment_response_2.status).toBe(StatusCodes.OK);
     });
   });
 

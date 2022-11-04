@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { HydratedDocument } from "mongoose";
 import { IUser } from "../models/User";
 
 const TOKEN_SECRET = "cookies";
@@ -18,7 +19,7 @@ export class AuthService {
     return decoded_token.sub;
   }
 
-  public static async generateToken(user: IUser) {
+  public static async generateToken(user: HydratedDocument<IUser>) {
     return jwt.sign(
       {
         sub: user._id,

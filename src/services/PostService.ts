@@ -1,3 +1,4 @@
+import { HydratedDocument } from "mongoose";
 import { ResourceNotAuth } from "../errors/ResourceNotAuth";
 import { IPost, Post } from "../models/Post";
 import { Tag } from "../models/Tag";
@@ -34,7 +35,11 @@ export class PostService {
     return await Post.findById(id);
   }
 
-  public static async edit(id: string, post_dto: IPost, user: IUser) {
+  public static async edit(
+    id: string,
+    post_dto: IPost,
+    user: HydratedDocument<IUser>
+  ) {
     const existing_post = await Post.findById(id).populate("user");
 
     if (!existing_post?.user?._id.equals(user._id)) {

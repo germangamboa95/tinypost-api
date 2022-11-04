@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { body, param } from "express-validator";
 import { StatusCodes } from "http-status-codes";
+import { HydratedDocument } from "mongoose";
 import { InvalidPassword } from "../errors/InvalidPassword";
 import { ResourceNotAuth } from "../errors/ResourceNotAuth";
 import { UserAlreadyExists } from "../errors/UserAlreadyExists";
@@ -95,7 +96,7 @@ ApiController.get("/posts", async (req: Request, res: Response) => {
 });
 
 ApiController.get(
-  "/posts/{post_id}",
+  "/posts/:post_id",
   validate([param("post_id").isMongoId().trim()]),
   async (req: Request, res: Response) => {
     const { post_id } = getValidatedData(req);
@@ -148,7 +149,7 @@ ApiController.patch(
   async (req: Request, res: Response) => {
     try {
       const { post_id, ...post_dto } = getValidatedData(req);
-      const user = res.locals.user as IUser;
+      const user = res.locals.user as HydratedDocument<IUser>;
       const post = await PostService.edit(post_id, post_dto as IPost, user);
       return res.json({ post });
     } catch (error) {
@@ -174,14 +175,56 @@ ApiController.post(
   ]),
   async (req: Request, res: Response) => {
     const { post_id, ...comment_dto } = getValidatedData(req);
-    const user = res.locals.user as IUser;
-    const comment = await CommentService.addComment(
-      post_id,
-      user,
-      comment_dto as IComment
-    );
 
-    return res.json({ comment });
+    try {
+      const user = res.locals.user as IUser;
+      const comment = await CommentService.addComment(
+        post_id,
+        user,
+        comment_dto as IComment
+      );
+
+      return res.json({ comment });
+    } catch (error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
+  }
+);
+
+ApiController.get(
+  "/posts/:post_id/comments",
+  validate([param("post_id").isMongoId().trim()]),
+  async (req: Request, res: Response) => {
+    const { post_id } = getValidatedData(req);
+
+    try {
+      const comments = await CommentService.loadCommentsForPost(post_id);
+
+      return res.json({ comments });
+    } catch (error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
+  }
+);
+ApiController.get(
+  "/comments/:comment_id",
+  validate([param("comment_id").isMongoId().trim()]),
+  async (req: Request, res: Response) => {
+    const { comment_id } = getValidatedData(req);
+
+    try {
+      const comments = await CommentService.loadCommentsForComment(comment_id);
+
+      return res.json({ comments });
+    } catch (error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
   }
 );
 
@@ -189,14 +232,14 @@ ApiController.post(
   "/comments/:comment_id",
   AuthMiddleware,
   validate([
-    param("post_id").isMongoId().trim(),
+    param("comment_id").isMongoId().trim(),
     body("content").isString().trim(),
   ]),
   async (req: Request, res: Response) => {
-    const { post_id, ...comment_dto } = getValidatedData(req);
+    const { comment_id, ...comment_dto } = getValidatedData(req);
     const user = res.locals.user as IUser;
     const comment = await CommentService.addChildComment(
-      post_id,
+      comment_id,
       user,
       comment_dto as IComment
     );
@@ -214,12 +257,12 @@ ApiController.patch(
   ]),
   async (req: Request, res: Response) => {
     const { comment_id, ...comment_dto } = getValidatedData(req);
-    const user = res.locals.user as IUser;
+    const user = res.locals.user as HydratedDocument<IUser>;
 
     const comment = await CommentService.edit(
       comment_id,
       comment_dto as IComment,
-      user as IUser
+      user
     );
 
     return res.json({ comment });
