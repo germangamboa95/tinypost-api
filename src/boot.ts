@@ -1,8 +1,8 @@
 import { API_CONTROLLERS, VIEW_CONTROLLERS } from "./controllers";
 import { app } from "./web";
+import mongoose from "mongoose";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import mongoose from "mongoose";
 
 export const main = async () => {
   app.use(VIEW_CONTROLLERS);

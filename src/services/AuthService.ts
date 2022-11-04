@@ -21,7 +21,7 @@ export class AuthService {
   public static async generateToken(user: IUser) {
     return jwt.sign(
       {
-        sub: user.id,
+        sub: user._id,
         username: user.username,
       },
       TOKEN_SECRET,

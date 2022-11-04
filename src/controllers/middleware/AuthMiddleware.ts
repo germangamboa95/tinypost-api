@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
 import { TokenExpiredError } from "jsonwebtoken";
 import { AuthService } from "../../services/AuthService";
 import { UserService } from "../../services/UserService";
@@ -11,7 +12,7 @@ export const AuthMiddleware = async (
   const token = req.headers.authorization;
 
   if (!token) {
-    return res.status(401).json({
+    return res.status(StatusCodes.UNAUTHORIZED).json({
       message: "Authentication Token Missing",
     });
   }
@@ -22,7 +23,9 @@ export const AuthMiddleware = async (
     res.locals.user = await UserService.getById(user_id);
   } catch (error) {
     if (error instanceof TokenExpiredError) {
-      return res.status(401).json({ message: "Token expired" });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Token expired" });
     }
     return next(error);
   }

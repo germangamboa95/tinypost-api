@@ -3,7 +3,7 @@ import { Schema, model, Types } from "mongoose";
 export interface IPost {
   title: string;
   content_url: string;
-  content_type: "link" | "image";
+  content_type: "link" | "image" | "text";
   content_body: string;
   user?: Types.ObjectId;
   comments?: Types.ObjectId;
@@ -18,11 +18,10 @@ const user_schema = new Schema<IPost>(
     },
     content_url: {
       type: String,
-      required: true,
     },
     content_type: {
       type: Schema.Types.String,
-      default: "link",
+      default: "text",
     },
     content_body: {
       type: Schema.Types.String,

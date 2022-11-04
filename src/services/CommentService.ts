@@ -41,7 +41,7 @@ export class CommentService {
   }
 
   public static async edit(id: string, comment_dto: IComment, user: IUser) {
-    if (user.id === undefined) {
+    if (user._id === undefined) {
       throw new Error("User id missing");
     }
 

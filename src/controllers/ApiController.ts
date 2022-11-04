@@ -1,5 +1,10 @@
 import { Request, Response, Router } from "express";
 import { body, param } from "express-validator";
+import { StatusCodes } from "http-status-codes";
+import { InvalidPassword } from "../errors/InvalidPassword";
+import { ResourceNotAuth } from "../errors/ResourceNotAuth";
+import { UserAlreadyExists } from "../errors/UserAlreadyExists";
+import { UserDoesNotExist } from "../errors/UserDoesNotExist";
 import { IComment } from "../models/Comment";
 import { IPost } from "../models/Post";
 import { IUser } from "../models/User";
@@ -12,6 +17,16 @@ import { getValidatedData, validate } from "./middleware/ValidationMiddleware";
 
 export const ApiController = Router();
 
+ApiController.get(
+  "/self",
+  AuthMiddleware,
+  async (req: Request, res: Response) => {
+    const user = res.locals.user as IUser;
+
+    return res.json({ user });
+  }
+);
+
 ApiController.post(
   "/login",
   validate([
@@ -19,18 +34,33 @@ ApiController.post(
     body("password").trim().isString(),
   ]),
   async (req: Request, res: Response) => {
-    const { username, password } = getValidatedData(req);
-    const user = await UserService.authenticate(username, password);
-    const token = await AuthService.generateToken(user);
-    return res.json({ token, user });
+    try {
+      const { username, password } = getValidatedData(req);
+      const user = await UserService.authenticate(username, password);
+      const token = await AuthService.generateToken(user);
+      return res.json({ token, user });
+    } catch (error) {
+      if (
+        error instanceof InvalidPassword ||
+        error instanceof UserDoesNotExist
+      ) {
+        return res.status(StatusCodes.FORBIDDEN).json({
+          message: "Invalid Credentials",
+        });
+      }
+
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
   }
 );
 
 ApiController.post(
   "/register",
   validate([
-    body("username").trim().isString(),
-    body("password").trim().isString(),
+    body("username").isString().trim(),
+    body("password").isString().trim(),
     body("password_confirm").custom((value, { req }) => {
       if (value !== req.body.password) {
         throw new Error("Password confirmation does not match password");
@@ -40,9 +70,22 @@ ApiController.post(
   ]),
   async (req: Request, res: Response) => {
     const { username, password } = getValidatedData(req);
-    const user = await UserService.register(username, password);
-    const token = await AuthService.generateToken(user);
-    return res.json({ token, user });
+
+    try {
+      const user = await UserService.register(username, password);
+      const token = await AuthService.generateToken(user);
+      return res.json({ token, user });
+    } catch (error) {
+      if (error instanceof UserAlreadyExists) {
+        return res.status(StatusCodes.CONFLICT).json({
+          message: "Username is taken",
+        });
+      }
+
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
   }
 );
 
@@ -61,32 +104,40 @@ ApiController.get(
   }
 );
 
+//Todo handle different post types
 ApiController.post(
   "/posts",
   AuthMiddleware,
   validate([
     body("title").isString().trim(),
-    body("content_url").isString().trim(),
+    body("content_url").isString().trim().optional(),
     body("content_type").isString().trim(),
     body("content_body").isString().trim().optional(),
-    body("tags").isArray().optional(),
+    body("tags").isArray(),
     body("tags.*").isString().trim(),
   ]),
   async (req: Request, res: Response) => {
     const post_dto = getValidatedData(req);
-    const user = res.locals.user as IUser;
 
-    const post = await PostService.create(
-      user,
-      post_dto as IPost,
-      post_dto.tags
-    );
-    return res.json({ post });
+    try {
+      const user = res.locals.user as IUser;
+
+      const post = await PostService.create(
+        user,
+        post_dto as IPost,
+        post_dto.tags
+      );
+      return res.json({ post });
+    } catch (error) {
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
   }
 );
 
 ApiController.patch(
-  "/posts/{post_id}",
+  "/posts/:post_id",
   AuthMiddleware,
   validate([
     param("post_id").isMongoId().trim(),
@@ -95,15 +146,27 @@ ApiController.patch(
     body("tags.*").isString().trim(),
   ]),
   async (req: Request, res: Response) => {
-    const { post_id, ...post_dto } = getValidatedData(req);
-
-    const post = await PostService.edit(post_id, post_dto as IPost);
-    return res.json({ post });
+    try {
+      const { post_id, ...post_dto } = getValidatedData(req);
+      const user = res.locals.user as IUser;
+      const post = await PostService.edit(post_id, post_dto as IPost, user);
+      return res.json({ post });
+    } catch (error) {
+      if (error instanceof ResourceNotAuth) {
+        return res.status(StatusCodes.FORBIDDEN).json({
+          message: "Resource not allowed",
+        });
+      }
+      console.log(error);
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        message: "Server Error",
+      });
+    }
   }
 );
 
 ApiController.post(
-  "/posts/{post_id}/comments",
+  "/posts/:post_id/comments",
   AuthMiddleware,
   validate([
     param("post_id").isMongoId().trim(),
@@ -123,7 +186,7 @@ ApiController.post(
 );
 
 ApiController.post(
-  "/comments/{comment_id}",
+  "/comments/:comment_id",
   AuthMiddleware,
   validate([
     param("post_id").isMongoId().trim(),
@@ -143,7 +206,7 @@ ApiController.post(
 );
 
 ApiController.patch(
-  "/comments/{comment_id}",
+  "/comments/:comment_id",
   AuthMiddleware,
   validate([
     param("comment_id").isMongoId().trim(),
