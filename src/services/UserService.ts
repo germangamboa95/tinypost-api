@@ -4,6 +4,16 @@ import bcryptjs from "bcryptjs";
 import { UserDoesNotExist } from "../errors/UserDoesNotExist";
 import { InvalidPassword } from "../errors/InvalidPassword";
 export class UserService {
+  public static async getById(user_id: string) {
+    const user = await User.findById(user_id);
+
+    if (!user) {
+      throw new UserDoesNotExist();
+    }
+
+    return user;
+  }
+
   public static async register(username: string, password: string) {
     const existing_user = await User.findOne({ username });
 

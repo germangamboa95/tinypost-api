@@ -106,6 +106,7 @@
     "./coverage",
     "./jest.config.ts",
     "nightwatch.conf.js",
-    "./migrations"
+    "./migrations",
+    "./node_modules"
   ]
 }

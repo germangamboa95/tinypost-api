@@ -7,7 +7,7 @@ export interface IPost {
   content_body: string;
   user?: Types.ObjectId;
   comments?: Types.ObjectId;
-  tags?: Types.ObjectId;
+  tags?: [Types.ObjectId];
 }
 
 const user_schema = new Schema<IPost>(

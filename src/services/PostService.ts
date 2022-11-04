@@ -21,6 +21,8 @@ export class PostService {
   }
 
   public static async edit(id: string, post_dto: IPost) {
+    // TODO: Only creator can delete
+    // TODO: Handle tag changes
     return await Post.findByIdAndUpdate(id, post_dto);
   }
 

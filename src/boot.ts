@@ -1,11 +1,12 @@
-import { Controllers } from "./controllers";
+import { API_CONTROLLERS, VIEW_CONTROLLERS } from "./controllers";
 import { app } from "./web";
 import { NextFunction, Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
 
 export const main = async () => {
-  app.use(Controllers);
+  app.use(VIEW_CONTROLLERS);
+  app.use("/api", API_CONTROLLERS);
 
   await mongoose.connect("mongodb://mongo:27017", {
     auth: {
@@ -28,5 +29,5 @@ export const main = async () => {
     });
   });
 
-  app.listen(3000);
+  app.listen(3000, () => console.log("app started"));
 };
