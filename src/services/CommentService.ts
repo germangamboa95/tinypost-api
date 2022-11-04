@@ -1,3 +1,4 @@
+import { ResourceNotAuth } from "../errors/ResourceNotAuth";
 import { Post } from "../models";
 import { Comment, IComment } from "../models/Comment";
 import { IUser } from "../models/User";
@@ -37,5 +38,19 @@ export class CommentService {
     await parent_comment?.update({
       $push: { comments: comment },
     });
+  }
+
+  public static async edit(id: string, comment_dto: IComment, user: IUser) {
+    if (user.id === undefined) {
+      throw new Error("User id missing");
+    }
+
+    const comment = await Comment.findById(id).populate("user");
+
+    if (comment?.user?.username !== user.username) {
+      throw new ResourceNotAuth();
+    }
+
+    return await comment.update(comment_dto);
   }
 }

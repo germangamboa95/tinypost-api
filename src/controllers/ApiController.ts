@@ -1,10 +1,13 @@
 import { Request, Response, Router } from "express";
 import { body, param } from "express-validator";
+import { IComment } from "../models/Comment";
 import { IPost } from "../models/Post";
 import { IUser } from "../models/User";
 import { AuthService } from "../services/AuthService";
+import { CommentService } from "../services/CommentService";
 import { PostService } from "../services/PostService";
 import { UserService } from "../services/UserService";
+import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { getValidatedData, validate } from "./middleware/ValidationMiddleware";
 
 export const ApiController = Router();
@@ -60,6 +63,7 @@ ApiController.get(
 
 ApiController.post(
   "/posts",
+  AuthMiddleware,
   validate([
     body("title").isString().trim(),
     body("content_url").isString().trim(),
@@ -83,6 +87,7 @@ ApiController.post(
 
 ApiController.patch(
   "/posts/{post_id}",
+  AuthMiddleware,
   validate([
     param("post_id").isMongoId().trim(),
     body("content_body").isString().trim().optional(),
@@ -94,5 +99,66 @@ ApiController.patch(
 
     const post = await PostService.edit(post_id, post_dto as IPost);
     return res.json({ post });
+  }
+);
+
+ApiController.post(
+  "/posts/{post_id}/comments",
+  AuthMiddleware,
+  validate([
+    param("post_id").isMongoId().trim(),
+    body("content").isString().trim(),
+  ]),
+  async (req: Request, res: Response) => {
+    const { post_id, ...comment_dto } = getValidatedData(req);
+    const user = res.locals.user as IUser;
+    const comment = await CommentService.addComment(
+      post_id,
+      user,
+      comment_dto as IComment
+    );
+
+    return res.json({ comment });
+  }
+);
+
+ApiController.post(
+  "/comments/{comment_id}",
+  AuthMiddleware,
+  validate([
+    param("post_id").isMongoId().trim(),
+    body("content").isString().trim(),
+  ]),
+  async (req: Request, res: Response) => {
+    const { post_id, ...comment_dto } = getValidatedData(req);
+    const user = res.locals.user as IUser;
+    const comment = await CommentService.addChildComment(
+      post_id,
+      user,
+      comment_dto as IComment
+    );
+
+    return res.json({ comment });
+  }
+);
+
+ApiController.patch(
+  "/comments/{comment_id}",
+  AuthMiddleware,
+  validate([
+    param("comment_id").isMongoId().trim(),
+    body("content_body").isString().trim(),
+  ]),
+  async (req: Request, res: Response) => {
+    const { comment_id, ...comment_dto } = getValidatedData(req);
+    const user = res.locals.user as IUser;
+
+    const comment = await CommentService.edit(
+      comment_id,
+      comment_dto as IComment,
+      user as IUser
+    );
+
+    return res.json({ comment });
   }
 );

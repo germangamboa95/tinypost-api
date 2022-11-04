@@ -1,8 +1,9 @@
 import { model, Schema, Types } from "mongoose";
+import { IUser } from "./User";
 
 export interface IComment {
   content: string;
-  user?: Types.ObjectId;
+  user?: IUser;
   comments?: Schema.Types.ObjectId;
 }
 
